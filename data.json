@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "result": [
+    {
+      "update_id": 470484786,
+      "message": {
+        "message_id": 64,
+        "from": {
+          "id": 269892926,
+          "is_bot": false,
+          "first_name": "Mikhail",
+          "username": "perfectionss",
+          "language_code": "ru"
+        },
+        "chat": {
+          "id": 269892926,
+          "first_name": "Mikhail",
+          "username": "perfectionss",
+          "type": "private"
+        },
+        "date": 1667930059,
+        "text": "Просмотр скю"
+      }
+    }
+  ]
+}
