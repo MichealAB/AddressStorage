@@ -141,45 +141,13 @@ func TGChat() {
 			if strconv.Itoa(MessageUpdateId) == MessageOffset {
 				continue
 			}
-
-			//readFile := ReadMessage()
-			//var telegramMessageList []JsonFile
-			//var telegramMessage JsonFile
-			//_ = json.Unmarshal(readFile, &telegramMessageList)
-			//_ = json.Unmarshal(body, &telegramMessage)
-			//telegramMessageList = append(telegramMessageList, telegramMessage)
-			//telegramMessageListJson, _ := json.Marshal(telegramMessageList)
-			//err = os.WriteFile("./message.json", telegramMessageListJson, 0666)
-			//if err != nil {
-			//	log.Fatalf("Unable to open file:", err)
-			//}
-			//fmt.Println(err)
-
 			MessageOffset = strconv.Itoa(MessageUpdateId)
 			MessageChatId = A.Result[i].Message.Chat.Id
 			MessageText := A.Result[i].Message.Text
 			WriteUpdatesID([]byte(MessageOffset))
 			var output1 string
-
-			//var B []JsonFile
-			//readFile1 := ReadMessage()
-			//err = json.Unmarshal(readFile1, &B)
-			//if err != nil {
-			//	fmt.Println("Не удалось преобразовать массив байт в структуру В", err)
-			//	return
-			//}
-			//fmt.Println("Преобразовали массив в структуру")
-			//for i, v := range B {
-			//	fmt.Println(i)
-			//	for _, v2 := range v.Result {
-			//		fmt.Println(v2.Message.Chat.Id, v2.Message.Text)
-			//	}
-			//}
-
-			//q := A.Result[i-1].Message.Text
 			InsertTextInSql(A.Result[i].Message.Chat.Id, A.Result[i].Message.Text)
 			FindText(A.Result[i].Message.Chat.Id)
-
 			vvod := Find(MessageText)
 			if vvod == "" {
 				switch FindText(A.Result[i].Message.Chat.Id) {
@@ -239,7 +207,6 @@ func TGChat() {
 				Contains(telegramChatList, MessageChatId)
 			} else {
 			}
-
 		}
 		time.Sleep(1 * time.Second)
 	}
