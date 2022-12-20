@@ -28,6 +28,9 @@ var (
 	id_sku        string
 	output        string
 	MessageChatId int
+	id            int
+	chat_id       int
+	Text          string
 )
 
 type JsonFile struct {
@@ -102,12 +105,11 @@ func TGBot() {
 		}
 		fmt.Println(string(body))
 	}
-
 }
+
 func TGChat() {
 	MessageOffset := ReadUpdatesID()
 	for true {
-		var A JsonFile
 		url2 := "https://api.telegram.org/bot" + tgBotKey + "/getUpdates?offset=" + MessageOffset
 		fmt.Println(url2)
 		method := "GET"
@@ -131,6 +133,7 @@ func TGChat() {
 		}
 		fmt.Println(string(body))
 
+		var A JsonFile
 		_ = json.Unmarshal(body, &A)
 		ResultStruct := A.Result
 		for i := range ResultStruct {
@@ -138,16 +141,19 @@ func TGChat() {
 			if strconv.Itoa(MessageUpdateId) == MessageOffset {
 				continue
 			}
-			readFile := ReadMessage()
-			var telegramMessageList []string
-			_ = json.Unmarshal(readFile, &telegramMessageList)
-			telegramMessageList = append(telegramMessageList, string(body))
-			telegramMessageListJson, _ := json.Marshal(telegramMessageList)
-			err = os.WriteFile("./message.json", telegramMessageListJson, 0666)
-			if err != nil {
-				log.Fatalf("Unable to open file:", err)
-			}
-			fmt.Println(err)
+
+			//readFile := ReadMessage()
+			//var telegramMessageList []JsonFile
+			//var telegramMessage JsonFile
+			//_ = json.Unmarshal(readFile, &telegramMessageList)
+			//_ = json.Unmarshal(body, &telegramMessage)
+			//telegramMessageList = append(telegramMessageList, telegramMessage)
+			//telegramMessageListJson, _ := json.Marshal(telegramMessageList)
+			//err = os.WriteFile("./message.json", telegramMessageListJson, 0666)
+			//if err != nil {
+			//	log.Fatalf("Unable to open file:", err)
+			//}
+			//fmt.Println(err)
 
 			MessageOffset = strconv.Itoa(MessageUpdateId)
 			MessageChatId = A.Result[i].Message.Chat.Id
@@ -155,11 +161,28 @@ func TGChat() {
 			WriteUpdatesID([]byte(MessageOffset))
 			var output1 string
 
-			q := A.Result[i-1].Message.Text
+			//var B []JsonFile
+			//readFile1 := ReadMessage()
+			//err = json.Unmarshal(readFile1, &B)
+			//if err != nil {
+			//	fmt.Println("Не удалось преобразовать массив байт в структуру В", err)
+			//	return
+			//}
+			//fmt.Println("Преобразовали массив в структуру")
+			//for i, v := range B {
+			//	fmt.Println(i)
+			//	for _, v2 := range v.Result {
+			//		fmt.Println(v2.Message.Chat.Id, v2.Message.Text)
+			//	}
+			//}
+
+			//q := A.Result[i-1].Message.Text
+			InsertTextInSql(A.Result[i].Message.Chat.Id, A.Result[i].Message.Text)
+			FindText(A.Result[i].Message.Chat.Id)
 
 			vvod := Find(MessageText)
 			if vvod == "" {
-				switch q {
+				switch FindText(A.Result[i].Message.Chat.Id) {
 				case "Просмотр скю":
 					output1 = FindAddressAndCountOnSKU(MessageText)
 				case "Просмотр ячейки":
@@ -216,15 +239,7 @@ func TGChat() {
 				Contains(telegramChatList, MessageChatId)
 			} else {
 			}
-			readFile1 := ReadMessage()
-			err = json.Unmarshal(readFile1, &A)
-			if err != nil {
-				fmt.Println("Не удалось преобразовать массив байт в структуру В", err)
-			}
-			ResultStruct1 := A.Result
-			for v := range ResultStruct1 {
-				fmt.Println(v, A.Result[v].Message.Chat.Id, A.Result[v].Message.Text, "HELLO")
-			}
+
 		}
 		time.Sleep(1 * time.Second)
 	}
@@ -443,42 +458,41 @@ func Find(q string) string {
 	return TextMassage
 }
 
-//func InsertTextInSql(ChatId int, Text string, UpdateId int) string {
-//	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?allowNativePasswords=true", user, password, host, database)
-//	db, err := sql.Open("mysql", connectionString)
-//	checkError(err)
-//	defer db.Close()
-//	err = db.Ping()
-//	checkError(err)
-//	fmt.Println("Successfully created connection to database.")
-//	rows, err := db.Exec("INSERT INTO TG_Chat (chat_id, Text, update_id) VALUES (?, ?, ?);", ChatId, Text, UpdateId)
-//	checkError(err)
-//	rowCount, err := rows.RowsAffected()
-//	fmt.Printf("Updated %d row(s) of data.\n", rowCount)
-//	fmt.Println("Done.")
-//	return "Новое сообщение записано" + "\n" + " Текст: " + Text
-//}
-//
-//func FindUpdateId(MessageUpdateId int) string {
-//	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?allowNativePasswords=true", user, password, host, database)
-//	db, err := sql.Open("mysql", connectionString)
-//	checkError(err)
-//	defer db.Close()
-//	err = db.Ping()
-//	checkError(err)
-//	fmt.Println("Successfully created connection to database.")
-//	rows, err := db.Query("SELECT * from TG_Chat order by update_id desc limit 1, 1;")
-//	checkError(err)
-//	defer rows.Close()
-//	fmt.Println("Reading data:")
-//	for rows.Next() {
-//		//err := rows.Scan(&sku, &title, &place, &count, &id_sku)
-//		//checkError(err)
-//		output := MessageUpdateId - 1
-//		fmt.Printf("Data row =", output)
-//	}
-//	err = rows.Err()
-//	checkError(err)
-//	fmt.Println("Done.")
-//	return output
-//}
+func InsertTextInSql(ChatId int, Text string) string {
+	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?allowNativePasswords=true", user, password, host, database)
+	db, err := sql.Open("mysql", connectionString)
+	checkError(err)
+	defer db.Close()
+	err = db.Ping()
+	checkError(err)
+	fmt.Println("Successfully created connection to database.")
+	rows, err := db.Exec("INSERT INTO ChatMessage (chat_id, Text) VALUES (?, ?);", ChatId, Text)
+	checkError(err)
+	rowCount, err := rows.RowsAffected()
+	fmt.Printf("Updated %d row(s) of data.\n", rowCount)
+	fmt.Println("Done.")
+	return "Новое сообщение записано\n" + "Чат ИД: " + string(ChatId) + "\nТекст: " + Text
+}
+
+func FindText(MessageChatId int) string {
+	var connectionString = fmt.Sprintf("%s:%s@tcp(%s:3306)/%s?allowNativePasswords=true", user, password, host, database)
+	db, err := sql.Open("mysql", connectionString)
+	checkError(err)
+	defer db.Close()
+	err = db.Ping()
+	checkError(err)
+	fmt.Println("Successfully created connection to database.")
+	rows, err := db.Query("SELECT * from ChatMessage where chat_id=? order by id desc limit 1,1;", MessageChatId)
+	checkError(err)
+	defer rows.Close()
+	fmt.Println("Reading data:")
+	for rows.Next() {
+		err := rows.Scan(&id, &chat_id, &Text)
+		checkError(err)
+		fmt.Printf("Data row =", Text)
+	}
+	err = rows.Err()
+	checkError(err)
+	fmt.Println("Done.")
+	return Text
+}
